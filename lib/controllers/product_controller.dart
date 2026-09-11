@@ -8,6 +8,12 @@ class ProductController extends ChangeNotifier {
 
   List<Product> products = [];
 
+  int _skip = 0;
+  final int _limit = 20;
+
+  bool isLoadingMore = false;
+  bool hasMore = true;
+
   bool isLoading = false;
   String? errorMessage;
 
@@ -22,6 +28,38 @@ class ProductController extends ChangeNotifier {
       errorMessage = 'Unable to load products. Please try again.';
     } finally {
       isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (isLoading || isLoadingMore || !hasMore) {
+      return;
+    }
+
+    isLoadingMore = true;
+    notifyListeners();
+
+    try {
+      final newProducts = await _api.getProducts(
+        limit: _limit,
+        skip: _skip + _limit,
+      );
+
+      if (newProducts.isEmpty) {
+        hasMore = false;
+      } else {
+        products.addAll(newProducts);
+        _skip += _limit;
+
+        if (newProducts.length < _limit) {
+          hasMore = false;
+        }
+      }
+    } catch (e) {
+      // Keep the existing products if loading the next page fails.
+    } finally {
+      isLoadingMore = false;
       notifyListeners();
     }
   }
