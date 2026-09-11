@@ -17,6 +17,7 @@ class _ProductsPageState extends State<ProductsPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
+  bool _showScrollToTop = false;
 
   @override
   void initState() {
@@ -25,8 +26,15 @@ class _ProductsPageState extends State<ProductsPage> {
     _controller = ProductController();
     _controller.loadProducts();
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 300) {
+      final position = _scrollController.position;
+
+      if (_showScrollToTop != (position.pixels > 300)) {
+        setState(() {
+          _showScrollToTop = position.pixels > 300;
+        });
+      }
+
+      if (position.pixels >= position.maxScrollExtent - 300) {
         _controller.loadMore();
       }
     });
@@ -163,6 +171,29 @@ class _ProductsPageState extends State<ProductsPage> {
             ),
           );
         },
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (_showScrollToTop) {
+            _scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+            );
+          } else {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+            );
+          }
+        },
+        child: Icon(
+          _showScrollToTop
+              ? Icons.arrow_upward
+              : Icons.arrow_downward,
+        ),
       ),
     );
   }
