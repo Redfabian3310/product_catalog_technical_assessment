@@ -12,6 +12,7 @@ class ProductsPage extends StatefulWidget {
 
 class _ProductsPageState extends State<ProductsPage> {
   late final ProductController _controller;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -19,10 +20,17 @@ class _ProductsPageState extends State<ProductsPage> {
 
     _controller = ProductController();
     _controller.loadProducts();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 300) {
+        _controller.loadMore();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -66,8 +74,19 @@ class _ProductsPageState extends State<ProductsPage> {
           }
 
           return ListView.builder(
-            itemCount: _controller.products.length,
+            controller: _scrollController,
+            itemCount: _controller.products.length +
+                (_controller.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
+              if (index == _controller.products.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
               final product = _controller.products[index];
 
               return ProductCard(
