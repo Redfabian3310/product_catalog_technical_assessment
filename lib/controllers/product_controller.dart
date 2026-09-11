@@ -26,18 +26,28 @@ class ProductController extends ChangeNotifier {
   bool isSearching = false;
 
   Future<void> loadProducts() async {
+    _skip = 0;
+    hasMore = true;
+
     isLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      products = await _api.getProducts();
+      products = await _api.getProducts(
+        limit: _limit,
+        skip: _skip,
+      );
     } catch (e) {
       errorMessage = 'Unable to load products. Please try again.';
     } finally {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> refreshProducts() async {
+    await loadProducts();
   }
 
   Future<void> loadMore() async {

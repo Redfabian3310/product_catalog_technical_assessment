@@ -51,12 +51,9 @@ class _ProductsPageState extends State<ProductsPage> {
           onChanged: (query) {
             _searchDebounce?.cancel();
 
-            _searchDebounce = Timer(
-              const Duration(milliseconds: 500),
-                  () {
-                _controller.searchProducts(query);
-              },
-            );
+            _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+              _controller.searchProducts(query);
+            });
           },
           onSubmitted: (query) {
             _searchDebounce?.cancel();
@@ -72,9 +69,7 @@ class _ProductsPageState extends State<ProductsPage> {
         listenable: _controller,
         builder: (context, child) {
           if (_controller.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (_controller.errorMessage != null) {
@@ -94,80 +89,78 @@ class _ProductsPageState extends State<ProductsPage> {
           }
 
           if (_controller.products.isEmpty) {
-            return const Center(
-              child: Text('No products found'),
-            );
+            return const Center(child: Text('No products found'));
           }
 
-          return ListView.builder(
-            controller: _scrollController,
-            itemCount: _controller.products.length +
-                (_controller.isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == _controller.products.length) {
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-
-              final product = _controller.products[index];
-
-              return ProductCard(
-                product: product,
-                onTap: () {
-                  _controller.loadProductDetail(product.id);
-
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return ListenableBuilder(
-                        listenable: _controller,
-                        builder: (context, child) {
-                          if (_controller.isDetailLoading) {
-                            return const Dialog(
-                              child: SizedBox(
-                                height: 200,
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                            );
-                          }
-
-                          if (_controller.detailErrorMessage != null) {
-                            return AlertDialog(
-                              title: const Text('Something went wrong'),
-                              content: Text(
-                                _controller.detailErrorMessage!,
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    _controller.loadProductDetail(product.id);
-                                  },
-                                  child: const Text('Retry'),
-                                ),
-                              ],
-                            );
-                          }
-
-                          if (_controller.selectedProduct != null) {
-                            return ProductDetailPage(
-                              product: _controller.selectedProduct!,
-                            );
-                          }
-
-                          return const SizedBox.shrink();
-                        },
-                      );
-                    },
+          return RefreshIndicator(
+            onRefresh: _controller.refreshProducts,
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount:
+                  _controller.products.length +
+                  (_controller.isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == _controller.products.length) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
                   );
-                },
-              );
-            },
+                }
+
+                final product = _controller.products[index];
+
+                return ProductCard(
+                  product: product,
+                  onTap: () {
+                    _controller.loadProductDetail(product.id);
+
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return ListenableBuilder(
+                          listenable: _controller,
+                          builder: (context, child) {
+                            if (_controller.isDetailLoading) {
+                              return const Dialog(
+                                child: SizedBox(
+                                  height: 200,
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            if (_controller.detailErrorMessage != null) {
+                              return AlertDialog(
+                                title: const Text('Something went wrong'),
+                                content: Text(_controller.detailErrorMessage!),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      _controller.loadProductDetail(product.id);
+                                    },
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              );
+                            }
+
+                            if (_controller.selectedProduct != null) {
+                              return ProductDetailPage(
+                                product: _controller.selectedProduct!,
+                              );
+                            }
+
+                            return const SizedBox.shrink();
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
           );
         },
       ),
