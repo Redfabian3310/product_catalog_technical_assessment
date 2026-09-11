@@ -17,6 +17,11 @@ class ProductController extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
+  Product? selectedProduct;
+
+  bool isDetailLoading = false;
+  String? detailErrorMessage;
+
   Future<void> loadProducts() async {
     isLoading = true;
     errorMessage = null;
@@ -60,6 +65,21 @@ class ProductController extends ChangeNotifier {
       // Keep the existing products if loading the next page fails.
     } finally {
       isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadProductDetail(int id) async {
+    isDetailLoading = true;
+    detailErrorMessage = null;
+    notifyListeners();
+
+    try {
+      selectedProduct = await _api.getProductDetail(id);
+    } catch (e) {
+      detailErrorMessage = 'Unable to load product details. Please try again.';
+    } finally {
+      isDetailLoading = false;
       notifyListeners();
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../controllers/product_controller.dart';
 import 'widgets/product_card.dart';
+import 'product_detail_page.dart';
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
@@ -91,8 +92,21 @@ class _ProductsPageState extends State<ProductsPage> {
 
               return ProductCard(
                 product: product,
-                onTap: () {
-                  // Product detail will be added next.
+                onTap: () async {
+                  await _controller.loadProductDetail(product.id);
+
+                  if (!mounted) return;
+
+                  if (_controller.selectedProduct != null) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return ProductDetailPage(
+                          product: _controller.selectedProduct!,
+                        );
+                      },
+                    );
+                  }
                 },
               );
             },
