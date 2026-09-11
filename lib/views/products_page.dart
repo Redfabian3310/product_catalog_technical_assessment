@@ -92,21 +92,54 @@ class _ProductsPageState extends State<ProductsPage> {
 
               return ProductCard(
                 product: product,
-                onTap: () async {
-                  await _controller.loadProductDetail(product.id);
+                onTap: () {
+                  _controller.loadProductDetail(product.id);
 
-                  if (!mounted) return;
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return ListenableBuilder(
+                        listenable: _controller,
+                        builder: (context, child) {
+                          if (_controller.isDetailLoading) {
+                            return const Dialog(
+                              child: SizedBox(
+                                height: 200,
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                            );
+                          }
 
-                  if (_controller.selectedProduct != null) {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return ProductDetailPage(
-                          product: _controller.selectedProduct!,
-                        );
-                      },
-                    );
-                  }
+                          if (_controller.detailErrorMessage != null) {
+                            return AlertDialog(
+                              title: const Text('Something went wrong'),
+                              content: Text(
+                                _controller.detailErrorMessage!,
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    _controller.loadProductDetail(product.id);
+                                  },
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            );
+                          }
+
+                          if (_controller.selectedProduct != null) {
+                            return ProductDetailPage(
+                              product: _controller.selectedProduct!,
+                            );
+                          }
+
+                          return const SizedBox.shrink();
+                        },
+                      );
+                    },
+                  );
                 },
               );
             },
