@@ -22,6 +22,9 @@ class ProductController extends ChangeNotifier {
   bool isDetailLoading = false;
   String? detailErrorMessage;
 
+  String searchQuery = '';
+  bool isSearching = false;
+
   Future<void> loadProducts() async {
     isLoading = true;
     errorMessage = null;
@@ -80,6 +83,28 @@ class ProductController extends ChangeNotifier {
       detailErrorMessage = 'Unable to load product details. Please try again.';
     } finally {
       isDetailLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> searchProducts(String query) async {
+    searchQuery = query.trim();
+
+    if (searchQuery.isEmpty) {
+      await loadProducts();
+      return;
+    }
+
+    isSearching = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      products = await _api.searchProducts(searchQuery);
+    } catch (e) {
+      errorMessage = 'Unable to search products. Please try again.';
+    } finally {
+      isSearching = false;
       notifyListeners();
     }
   }

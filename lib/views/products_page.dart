@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../controllers/product_controller.dart';
 import 'widgets/product_card.dart';
@@ -14,6 +15,8 @@ class ProductsPage extends StatefulWidget {
 class _ProductsPageState extends State<ProductsPage> {
   late final ProductController _controller;
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -31,6 +34,8 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     _scrollController.dispose();
     _controller.dispose();
     super.dispose();
@@ -41,7 +46,27 @@ class _ProductsPageState extends State<ProductsPage> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('Product Catalog'),
+        title: TextField(
+          controller: _searchController,
+          onChanged: (query) {
+            _searchDebounce?.cancel();
+
+            _searchDebounce = Timer(
+              const Duration(milliseconds: 500),
+                  () {
+                _controller.searchProducts(query);
+              },
+            );
+          },
+          onSubmitted: (query) {
+            _searchDebounce?.cancel();
+            _controller.searchProducts(query);
+          },
+          decoration: const InputDecoration(
+            hintText: 'Search products...',
+            border: InputBorder.none,
+          ),
+        ),
       ),
       body: ListenableBuilder(
         listenable: _controller,
